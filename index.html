@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nearby Homeopathic Doctors</title>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(to right, #2c7a7b, #175e5d);
+            color: white;
+        }
+        h2 {
+            margin-bottom: 15px;
+            font-size: 24px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+        button {
+            background: #ffcc29;
+            color: #333;
+            border: none;
+            padding: 12px 18px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: 0.3s ease-in-out;
+        }
+        button:hover {
+            background: #ffb400;
+            transform: scale(1.05);
+        }
+        #status {
+           color:white;
+            margin-top: 15px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .container {
+            max-width: 500px;
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            background: #f9f9f9;
+            margin: 12px 0;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
+            transition: 0.3s;
+        }
+        li:hover {
+            transform: translateY(-3px);
+            background: #fff4cc;
+        }
+        strong {
+            font-size: 16px;
+            color: #2c7a7b;
+        }
+        p {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>🌿 Nearby Homeopathic Doctors</h2>
+    <button onclick="getLocation()">Find Doctors</button>
+    <p id="status">Click the button to find nearby homeopathic doctors.</p>
+
+    <div class="container">
+        <ul id="doctorList"></ul>
+    </div>
+
+    <script>
+        const foursquareApiKey = "fsq33a/KH/XMnXr8kt8S6PvH7CgsllMeq+6Al5+l3cUH9dE="; // Replace with your API Key
+
+        function getLocation() {
+            if (navigator.geolocation) {
+                document.getElementById("status").innerText = "📍 Getting your location...";
+                navigator.geolocation.getCurrentPosition(showPosition, showError, { enableHighAccuracy: true });
+            } else {
+                document.getElementById("status").innerText = "❌ Geolocation is not supported by this browser.";
+            }
+        }
+
+        function showPosition(position) {
+            let lat = position.coords.latitude;
+            let lon = position.coords.longitude;
+            document.getElementById("status").innerText = "🔎 Searching for nearby doctors...";
+            fetchDoctors(lat, lon);
+        }
+
+        function showError(error) {
+            document.getElementById("status").innerText = "⚠️ Error getting location: " + error.message;
+        }
+
+        function fetchDoctors(lat, lon) {
+            const url = `https://api.foursquare.com/v3/places/search?query=homeopathy&ll=${lat},${lon}&radius=20000&limit=10`;
+            
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Authorization': foursquareApiKey,
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                let doctorList = document.getElementById("doctorList");
+                doctorList.innerHTML = "";
+
+                if (!data.results || data.results.length === 0) {
+                    document.getElementById("status").innerText = "❌ No homeopathic doctors found nearby.";
+                    return;
+                }
+
+                data.results.forEach(doc => {
+                    let name = doc.name || "Unnamed Clinic";
+                    let address = doc.location.formatted_address || "No address available";
+                    
+                    let li = document.createElement("li");
+                    li.innerHTML = `<strong>🏥 ${name}</strong><p>📍 ${address}</p>`;
+                    doctorList.appendChild(li);
+                });
+
+                document.getElementById("status").innerText = `✅ Found ${data.results.length} homeopathic doctors.`;
+            })
+            .catch(error => {
+                document.getElementById("status").innerText = "⚠️ Error fetching data: " + error.message;
+            });
+        }
+    </script>
+
+</body>
+</html>
